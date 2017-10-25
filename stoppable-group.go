@@ -1,54 +1,66 @@
 package hexa
 
 import (
-	"fmt"
+	"context"
 	"reflect"
-	"sync"
 )
 
-type StoppableGroup struct {
-	group     map[string]StoppableOne
-	index_map []string
-	cases     []reflect.SelectCase
-	lock      *sync.Mutex
+type StoppableFactoryInfo struct {
+	Name    string
+	Factory func() StoppableOne
 }
 
-func NewStoppableGroup(group map[string]StoppableOne) *StoppableGroup {
-	index_map, cases := make_selectors_of_map(group)
-	return &StoppableGroup{
-		lock:      &sync.Mutex{},
-		group:     group,
-		index_map: index_map,
-		cases:     cases,
-	}
+type StoppableSpawner struct {
+	factory_list []func() StoppableOne
+	cases        []reflect.SelectCase
+	stoppables   []StoppableOne
+	ctx          context.Context
 }
 
-func (__ *StoppableGroup) Push(name string, one StoppableOne) error {
-	__.lock.Lock()
-	defer __.lock.Unlock()
-	_, dup := __.group[name]
-	if dup {
-		return fmt.Errorf("already assigned name '%v'", name)
-	}
-
-	__.group[name] = one
-
-	return nil
-}
-
-func make_selector(v StoppableOne) reflect.SelectCase {
-	return reflect.SelectCase{
-		Chan: reflect.ValueOf(v.DoneNotify()),
+func assign(stoppables []StoppableOne, cases []reflect.SelectCase, factory func() StoppableOne, i int) {
+	stoppables[i] = factory()
+	cases[i] = reflect.SelectCase{
+		Chan: reflect.ValueOf(stoppables[i].DoneNotify()),
 		Dir:  reflect.SelectRecv,
 	}
 }
 
-func make_selectors_of_map(stoppableMap map[string]StoppableOne) ([]string, []reflect.SelectCase) {
-	index_map := make([]string, 0, len(stoppableMap))
-	res := make([]reflect.SelectCase, 0, len(stoppableMap))
-	for k, v := range stoppableMap {
-		res = append(res, make_selector(v))
-		index_map = append(index_map, k)
+func NewStoppableSpawner(ctx context.Context, factoryList []func() StoppableOne) *StoppableSpawner {
+	cases := make([]reflect.SelectCase, len(factoryList))
+	stoppables := make([]StoppableOne, len(factoryList))
+	for i, factory := range factoryList {
+		assign(stoppables, cases, factory, i)
 	}
-	return index_map, res
+
+	return &StoppableSpawner{
+		factory_list: factoryList,
+		cases:        cases,
+		stoppables:   stoppables,
+		ctx:          ctx,
+	}
+}
+
+func (__ *StoppableSpawner) Serve(respawnHandler func(int)) error {
+	for {
+		i, _, _ := reflect.Select(append(__.cases,
+			reflect.SelectCase{
+				Chan: reflect.ValueOf(__.ctx.Done()),
+				Dir:  reflect.SelectRecv,
+			}))
+		recv_ctx := len(__.stoppables) <= i
+		if recv_ctx {
+			// parent Context
+			return __.ctx.Err()
+		}
+
+		__.stoppables[i].Close()
+		switch respawnHandler {
+		case nil:
+		default:
+			respawnHandler(i)
+		}
+		factory := __.factory_list[i]
+
+		assign(__.stoppables, __.cases, factory, i)
+	}
 }
