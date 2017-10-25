@@ -1,6 +1,7 @@
 package hexa
 
 import (
+	"bufio"
 	"context"
 	"io"
 	"log"
@@ -11,6 +12,35 @@ type StdPlumber interface {
 	StderrPipe() (io.ReadCloser, error)
 	StdinPipe() (io.WriteCloser, error)
 	StdoutPipe() (io.ReadCloser, error)
+}
+
+func CopyPipe(ctx context.Context, w io.Writer, r io.Reader) {
+	go func() {
+		line_reader := bufio.NewScanner(r)
+
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+
+		for line_reader.Scan() {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
+
+			l := line_reader.Text()
+			w.Write([]byte(l))
+
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
+		}
+	}()
 }
 
 func NewCommand(parent context.Context, pipeHandler func(plumber StdPlumber), name string, args ...string) StoppableOne {
