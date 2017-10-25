@@ -17,7 +17,11 @@ func NewCommand(parent context.Context, pipeHandler func(plumber StdPlumber), na
 	own_ctx := NewDContextToStoppable(parent)
 	cmd := exec.CommandContext(own_ctx, name, args...)
 
-	pipeHandler(cmd)
+	switch pipeHandler {
+	case nil:
+	default:
+		pipeHandler(cmd)
+	}
 
 	go func() {
 		defer own_ctx.InClose()
