@@ -50,6 +50,7 @@ func (__ *StoppableSpawner) Serve(respawnHandler func(int)) error {
 		recv_ctx := len(__.stoppables) <= i
 		if recv_ctx {
 			// parent Context
+			__.tear_down()
 			return __.ctx.Err()
 		}
 
@@ -62,5 +63,12 @@ func (__ *StoppableSpawner) Serve(respawnHandler func(int)) error {
 		factory := __.factory_list[i]
 
 		assign(__.stoppables, __.cases, factory, i)
+	}
+}
+
+func (__ *StoppableSpawner) tear_down() {
+	for i := len(__.stoppables) - 1; i >= 0; i -= 1 {
+		__.stoppables[i].Close()
+		<-__.stoppables[i].DoneNotify()
 	}
 }
