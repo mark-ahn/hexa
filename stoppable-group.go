@@ -29,9 +29,6 @@ func assign(stoppables []StoppableOne, cases []reflect.SelectCase, factory func(
 func NewStoppableSpawner(ctx context.Context, factoryList []func() StoppableOne) *StoppableSpawner {
 	cases := make([]reflect.SelectCase, len(factoryList))
 	stoppables := make([]StoppableOne, len(factoryList))
-	for i, factory := range factoryList {
-		assign(stoppables, cases, factory, i)
-	}
 	defer func() {
 		if r := recover(); r != nil {
 			// fmt.Println("Recovered in f", r)
@@ -39,6 +36,9 @@ func NewStoppableSpawner(ctx context.Context, factoryList []func() StoppableOne)
 			panic(r)
 		}
 	}()
+	for i, factory := range factoryList {
+		assign(stoppables, cases, factory, i)
+	}
 
 	return &StoppableSpawner{
 		factory_list: factoryList,
