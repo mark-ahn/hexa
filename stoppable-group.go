@@ -31,6 +31,13 @@ func NewStoppableSpawner(ctx context.Context, factoryList []func() StoppableOne)
 	for i, factory := range factoryList {
 		assign(stoppables, cases, factory, i)
 	}
+	defer func() {
+		if r := recover(); r != nil {
+			// fmt.Println("Recovered in f", r)
+			tear_down(stoppables)
+			panic(r)
+		}
+	}()
 
 	return &StoppableSpawner{
 		factory_list: factoryList,
@@ -50,7 +57,7 @@ func (__ *StoppableSpawner) Serve(respawnHandler func(int)) error {
 		recv_ctx := len(__.stoppables) <= i
 		if recv_ctx {
 			// parent Context
-			__.tear_down()
+			tear_down(__.stoppables)
 			return __.ctx.Err()
 		}
 
@@ -66,9 +73,14 @@ func (__ *StoppableSpawner) Serve(respawnHandler func(int)) error {
 	}
 }
 
-func (__ *StoppableSpawner) tear_down() {
-	for i := len(__.stoppables) - 1; i >= 0; i -= 1 {
-		__.stoppables[i].Close()
-		<-__.stoppables[i].DoneNotify()
+func tear_down(stoppables []StoppableOne) {
+	for i := len(stoppables) - 1; i >= 0; i -= 1 {
+		stoppable := stoppables[i]
+		switch stoppable {
+		case nil:
+		default:
+			stoppable.Close()
+			<-stoppable.DoneNotify()
+		}
 	}
 }
