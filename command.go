@@ -31,7 +31,7 @@ func CopyPipe(ctx context.Context, w io.Writer, r io.Reader) {
 			default:
 			}
 
-			l := line_reader.Text()
+			l := line_reader.Text() + "\n"
 			w.Write([]byte(l))
 
 			select {
