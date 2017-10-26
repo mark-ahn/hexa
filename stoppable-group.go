@@ -30,11 +30,13 @@ func NewStoppableSpawner(ctx context.Context, factoryList []func() StoppableOne)
 	cases := make([]reflect.SelectCase, len(factoryList))
 	stoppables := make([]StoppableOne, len(factoryList))
 	defer func() {
-		if r := recover(); r != nil {
+		r := recover()
+		if r != nil {
 			log.Printf("Recovered for tear-down: %v", r)
 			tear_down(stoppables)
 			panic(r)
 		}
+		log.Printf("no panic %v", r)
 	}()
 	for i, factory := range factoryList {
 		assign(stoppables, cases, factory, i)
