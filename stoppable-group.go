@@ -2,6 +2,7 @@ package hexa
 
 import (
 	"context"
+	"logutil"
 	"reflect"
 )
 
@@ -79,6 +80,7 @@ func tear_down(stoppables []StoppableOne) {
 		switch stoppable {
 		case nil:
 		default:
+			logutil.Def.Debugf("[HEXA] tear down %vth element", i)
 			stoppable.Close()
 			<-stoppable.DoneNotify()
 		}
