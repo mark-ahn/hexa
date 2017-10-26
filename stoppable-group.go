@@ -31,7 +31,7 @@ func NewStoppableSpawner(ctx context.Context, factoryList []func() StoppableOne)
 	stoppables := make([]StoppableOne, len(factoryList))
 	defer func() {
 		if r := recover(); r != nil {
-			// fmt.Println("Recovered in f", r)
+			log.Println("Recovered for tear-down: %v", r)
 			tear_down(stoppables)
 			panic(r)
 		}
@@ -80,7 +80,7 @@ func tear_down(stoppables []StoppableOne) {
 		switch stoppable {
 		case nil:
 		default:
-			log.Printf("[HEXA] tear down %vth element", i)
+			log.Printf("[HEXA] tear down %vth element\n", i)
 			stoppable.Close()
 			<-stoppable.DoneNotify()
 		}
