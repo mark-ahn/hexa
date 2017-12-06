@@ -57,7 +57,7 @@ func NewCommand(parent context.Context, pipeHandler func(plumber StdPlumber), na
 		defer own_ctx.InClose()
 		err := cmd.Run()
 		if err != nil {
-			log.Printf("%+v", err)
+			log.Printf("[HEXA] %v: %+v", name, err)
 		}
 	}()
 	return own_ctx
