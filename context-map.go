@@ -12,7 +12,7 @@ type DContextToStoppable struct {
 
 func NewDContextToStoppable(parent context.Context) *DContextToStoppable {
 	inCtx, exCancel := context.WithCancel(parent)
-	exCtx, inCancel := context.WithCancel(inCtx)
+	exCtx, inCancel := context.WithCancel(parent)
 	return &DContextToStoppable{
 		inCtx, exCtx, inCancel, exCancel,
 	}
