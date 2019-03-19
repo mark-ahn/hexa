@@ -1,8 +1,8 @@
 package hexa_test
 
 import (
-	"."
 	"context"
+	"hexa"
 	"log"
 	"testing"
 )

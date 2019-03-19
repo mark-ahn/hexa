@@ -1,16 +1,12 @@
 package hexa
 
-type StepControllableOne interface {
-	StepTrigger() chan<- interface{}
-	StepDoneNotify() <-chan interface{}
-}
-
+// The StoppableOne interface represents a stoppable service.
+// It offers the way to stop parallel routine such as go rutine.
+//
+// Close should try to stop the parallel routine.
+//
+// DoneNotify should return a channel that is closed when the parallel routine is closed.
 type StoppableOne interface {
 	Close()
 	DoneNotify() <-chan struct{}
-}
-
-type StepControlStoppableOne interface {
-	StepControllableOne
-	StoppableOne
 }

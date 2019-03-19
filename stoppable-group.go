@@ -6,10 +6,10 @@ import (
 	"reflect"
 )
 
-type StoppableFactoryInfo struct {
-	Name    string
-	Factory func() StoppableOne
-}
+// type StoppableFactoryInfo struct {
+// 	Name    string
+// 	Factory func() StoppableOne
+// }
 
 type StoppableSpawner struct {
 	factory_list []func() StoppableOne

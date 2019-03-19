@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+// deprecated: do not use any more
+// this is replaced with ContextStop.
 type DContextToStoppable struct {
 	inCtx, exCtx           context.Context
 	inCanceler, exCanceler context.CancelFunc
