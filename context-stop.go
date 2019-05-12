@@ -2,7 +2,9 @@ package hexa
 
 import (
 	"context"
+	"sync/atomic"
 	"time"
+	"unsafe"
 )
 
 // ContextStop is a imlementation of StoppableOne interface.
@@ -19,6 +21,7 @@ import (
 type ContextStop struct {
 	inCtx, exCtx           context.Context
 	inCanceler, exCanceler context.CancelFunc
+	err                    unsafe.Pointer
 }
 
 func NewContextStop(parent context.Context) *ContextStop {
@@ -40,12 +43,24 @@ func (__ *ContextStop) DoneNotify() <-chan struct{} {
 	return __.exCtx.Done()
 }
 
-func (__ *ContextStop) InBreak() {
+func (__ *ContextStop) Err() error {
+	e := atomic.LoadPointer(&__.err)
+	switch e {
+	case nil:
+		return __.exCtx.Err()
+	default:
+		return *(*error)(e)
+	}
+}
+
+func (__ *ContextStop) InBreak(err error) {
+	// only the first error is stored.
+	atomic.CompareAndSwapPointer(&__.err, nil, unsafe.Pointer(&err))
 	__.exCanceler()
 }
 func (__ *ContextStop) InClose() {
 	// make sure exCandeler() is called.
-	__.InBreak()
+	__.InBreak(nil)
 
 	__.inCanceler()
 }
@@ -60,9 +75,10 @@ func (__ *ContextStop) Deadline() (deadline time.Time, ok bool) {
 func (__ *ContextStop) Done() <-chan struct{} {
 	return __.DoneNotify()
 }
-func (__ *ContextStop) Err() error {
-	return __.exCtx.Err()
-}
+
+// func (__ *ContextStop) Err() error {
+// 	return __.exCtx.Err()
+// }
 func (__ *ContextStop) Value(key interface{}) interface{} {
 	return nil
 }

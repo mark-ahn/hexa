@@ -32,7 +32,7 @@ func ExampleNewContextStop() {
 					if err != nil {
 						// if want to terminate the service due to such as internal error,
 						// call InBreak() then exit the outer loop.
-						__.InBreak()
+						__.InBreak(err)
 						break loop
 					}
 				}

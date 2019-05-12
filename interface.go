@@ -9,4 +9,5 @@ package hexa
 type StoppableOne interface {
 	Close()
 	DoneNotify() <-chan struct{}
+	Err() error
 }
