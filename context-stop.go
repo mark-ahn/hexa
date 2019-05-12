@@ -40,9 +40,12 @@ func (__ *ContextStop) DoneNotify() <-chan struct{} {
 	return __.exCtx.Done()
 }
 
+func (__ *ContextStop) InBreak() {
+	__.exCanceler()
+}
 func (__ *ContextStop) InClose() {
 	// make sure exCandeler() is called.
-	__.Close()
+	__.InBreak()
 
 	__.inCanceler()
 }
