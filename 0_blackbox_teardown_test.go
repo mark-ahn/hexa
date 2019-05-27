@@ -2,9 +2,10 @@ package hexa_test
 
 import (
 	"context"
-	"hexa"
 	"log"
 	"testing"
+
+	"github.com/mark-ahn/hexa"
 )
 
 func Test_Teardown(t *testing.T) {
@@ -26,8 +27,6 @@ func Test_Teardown(t *testing.T) {
 		},
 		func() hexa.StoppableOne {
 			panic("go go go")
-
-			return nil
 		},
 	})
 }

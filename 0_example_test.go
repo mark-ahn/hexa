@@ -3,9 +3,10 @@ package hexa_test
 import (
 	"context"
 	"fmt"
-	"hexa"
 	"sync"
 	"time"
+
+	"github.com/mark-ahn/hexa"
 )
 
 func ExampleNewContextStop() {
