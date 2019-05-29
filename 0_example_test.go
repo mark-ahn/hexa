@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mark-ahn/hexa"
+	hexa "."
 )
 
 func ExampleNewContextStop() {
@@ -100,6 +100,45 @@ func Example_newContextStopWithMultipleGoRoutine() {
 			// InClose() causes the DoneNotify() channel to be closed.
 			// So client code can detect done when go routine has entirely done.
 			__.InClose()
+		}()
+		return __
+	}
+
+	srv := some_service()
+	defer func() {
+		srv.Close()
+		<-srv.DoneNotify()
+		fmt.Printf("service is terminated\n")
+	}()
+
+	fmt.Printf("do some work\n")
+	// Output:
+	// do some work
+	// service is terminated
+}
+
+func ExampleThreadGroup() {
+	some_service := func() hexa.StoppableOne {
+		__ := hexa.NewContextStop(context.Background())
+
+		// uses wait group to confirm all of the go routines are finished.
+		threads := hexa.ThreadGroup{}
+
+		// time.NewTicker(time.Second)
+		threads.SpawnService(__, make(chan interface{}), func(d interface{}) error {
+			// do some work
+			return nil
+		})
+
+		threads.SpawnService(__, make(chan interface{}), func(d interface{}) error {
+			// do some work
+			return nil
+		})
+
+		go func() {
+			threads.Done(__, func() {
+
+			})
 		}()
 		return __
 	}
