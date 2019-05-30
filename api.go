@@ -9,12 +9,6 @@ type ThreadGroup struct {
 	cnt sync.WaitGroup
 }
 
-// func NewThreadGroup() *ThreadGroup {
-// 	return &ThreadGroup{
-// 		cnt: sync.WaitGroup{},
-// 	}
-// }
-
 func (__ *ThreadGroup) SpawnService(stopCtx *ContextStop, ch <-chan interface{}, f func(interface{}) error) {
 	__.cnt.Add(1)
 	go func() {
